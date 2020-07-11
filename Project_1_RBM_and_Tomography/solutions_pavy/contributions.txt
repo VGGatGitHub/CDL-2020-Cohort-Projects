@@ -9,7 +9,7 @@ Arthur:
 - Developed the Value proposition for Portfolio Managers.
 
 Vesselin:
-- Modified the original Task 1 and Task 2 notebook, set them for running at the Google Colab, and shared the scripts with the team members.
+- Modified the original Task 1 and Task 2 notebooks, set them for running at the Google Colab, and shared the scripts with the team members.
 - Prepared the initial graphs and the technical explanations shown in the Project Business Application text.
 - Run also the MNIST, LiH, and BeH2 examples to understand the potential future applications of such RBMs models.
 - Discovered the efficiency training method based on near neighbor r-points.
