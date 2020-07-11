@@ -1,3 +1,4 @@
+Team PAVY (Pooria, Arthur, Vesselin, Yogesh) contributions summaries:
 
 Pooria:
 - Investigated the application of other Neuro Networks for data training and simulations.
@@ -19,3 +20,5 @@ Yogesh:
 - Initiated and finalized the Project Business Application text via the shared Google doc.
 - Developed the Value proposition for Portfolio Managers.
 
+Project Business Application text available as Google doc:
+https://docs.google.com/document/d/13g-Sry4jwW6cQ87KjRYUBjhv1Fh3tORvyNk6NOtnt2g/edit?usp=sharing
