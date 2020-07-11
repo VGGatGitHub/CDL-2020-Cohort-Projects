@@ -1,11 +1,21 @@
 
 Pooria:
-....
-
+- Investigated the application of other Neuro Networks for data training and simulations.
+- Developed the Portfolio Managers Risk Analysis section of the Project Business Application text.
 
 Arthur:
-- Summarized the study for Task 1, produced the relevant graphs, elaborated business proposal with rest of the team
+- Summarized the study for Task 1, produced the relevant fancy graphs, elaborated business proposals with the rest of the team.
+- facilitated the team zoom meetings and prepared the 90-sec recording.
+- Developed the Value proposition for Portfolio Managers.
+
 Vesselin:
+- Modified the original Task 1 and Task 2 notebook, set them for running at the Google Colab, and shared the scripts with the team members.
+- Prepared the initial graphs and the technical explanations shown in the Project Business Application text.
+- Run also the MNIST, LiH, and BeH2 examples to understand the potential future applications of such RBMs models.
+- Discovered the efficiency training method based on near neighbor r-points.
 
+Yogesh:
+- Spokesman of the team for the video recording.
+- Initiated and finalized the Project Business Application text via the shared Google doc.
+- Developed the Value proposition for Portfolio Managers.
 
-...
