@@ -14,6 +14,7 @@ Vesselin:
 - Prepared the initial graphs and the technical explanations shown in the Project Business Application text.
 - Run also the MNIST, LiH, and BeH2 examples to understand the potential future applications of such RBMs models.
 - Discovered the efficiency training method based on near neighbor r-points.
+- Finalized the current contributions summaries document and submitted the pull request of this GitHub repo.
 
 Yogesh:
 - Spokesman of the team for the video recording.
