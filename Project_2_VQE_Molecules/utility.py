@@ -13,7 +13,7 @@ from tequila.grouping.binary_rep import BinaryHamiltonian
 from tequila.grouping.binary_utils import binary_null_space
 from tequila import QubitHamiltonian, Variable, quantumchemistry, gates, PauliString, minimize
 
-def get_qubit_hamiltonian(mol, geometry, basis, charge=0, multiplicity=1, qubit_transf='bk'):
+def get_qubit_hamiltonian(mol, geometry, basis, charge=0, multiplicity=1, qubit_transf='jw'):
     '''
     Generating qubit hamiltonina of the given molecules with specified geometry, basis sets, charge and multiplicity
     Give its qubit form using specified transformation
@@ -239,6 +239,22 @@ def get_qwc_unitary(H : QubitOperator):
         U *= 1 / 2 ** (1/2) * (l.to_openfermion() + s.to_openfermion())
     return U
 
+def get_zform_unitary(H_qwc : QubitOperator):
+    '''
+    Get the unitary that transforms qwc operators to all-z form. 
+    '''
+    qwc_ops = {} # dictionary of qub : x/y/z
+    for pw, _ in H_qwc.terms.items():
+        for ps in pw:
+            qwc_ops[ps[0]] = ps[1]
+
+    U = QubitOperator.identity()
+    for qub, op in qwc_ops.items():
+        if op != 'Z':
+            U *= 1/2 ** (1/2) * (QubitOperator(term=op+str(qub)) + QubitOperator(term='Z'+str(qub)))
+
+    return U
+
 def qubit_wise_commuting(a : QubitOperator, b : QubitOperator):
     '''
     Check if a and b are qubit-wise commuting.
@@ -359,7 +375,7 @@ def get_bare_stabilizer(H : QubitOperator):
             print('Stabilizer with x/y terms ignored. ')
     return stabs
 
-def hf_occ(n_spin_orbitals, n_electrons, BK=False):
+def hf_occ(n_spin_orbitals, n_electrons, qubit_transf='jw'):
     '''
     Returns the HF canonical orbital occupations.
     Assumes Aufbau filling.
@@ -368,15 +384,17 @@ def hf_occ(n_spin_orbitals, n_electrons, BK=False):
     hf_state[:n_electrons] = 1
     # hf_state = np.expand_dims(hf_state, 1)
 
-    if BK:
+    if qubit_transf == 'bk':
         bk_encoder = openfermion.bravyi_kitaev_code(n_spin_orbitals).encoder.toarray()
         return bk_encoder @ hf_state % 2
-    else:
+    elif qubit_transf == 'jw':
         return hf_state
+    else:
+        raise(ValueError("Unknown transformation specified"))
 
 def correct_stabilizer_phase(stabs, hf_state):
     '''
-    Accept a hf state in BK encoding. Correct the phase of the z stabilizers.
+    Accept a hf state in JW/BK encoding. Correct the phase of the z stabilizers.
     '''
     for idx in range(len(stabs)):
         pw, _ = stabs[idx].terms.copy().popitem()
@@ -385,12 +403,12 @@ def correct_stabilizer_phase(stabs, hf_state):
                 stabs[idx] = stabs[idx] * -1
     return stabs
 
-def taper_hamiltonian(H : QubitOperator, n_spin_orbitals, n_electrons):
+def taper_hamiltonian(H : QubitOperator, n_spin_orbitals, n_electrons, qubit_transf):
     '''
     Taper off the H with the stabilizer in the correct phase based on hf state.
     '''
     stabs = get_bare_stabilizer(H)
-    hf = hf_occ(n_spin_orbitals, n_electrons, True)
+    hf = hf_occ(n_spin_orbitals, n_electrons, qubit_transf)
     stabs = correct_stabilizer_phase(stabs, hf)
     return remove_complex(taper_off_qubits(H, stabs))
 
@@ -680,15 +698,19 @@ def construct_QCC_ansatz(entanglers):
 
     return U
 
-def minimize_E(objective, method, initial_values, tol, samples):
-    sample_energies = np.zeros(samples)
+def minimize_E_random_guesses(objective, method, tol, n):
+    sample_energies = np.zeros(n)
 
-    for t in range(samples):
+    vars = objective.extract_variables()
+
+    for t in range(n):
+
+        initial_values = {v: np.random.uniform(0, 2*np.pi) for v in vars}
         result = minimize(objective=objective, method=method, initial_values=initial_values, tol=tol, silent=True)
         E_t = result.energy
         sample_energies[t] = E_t
 
-    return min(samples_energies)
+    return min(sample_energies)
 
 def init_qcc_params(hf_occ, variables):
     #initialize Euler angles at HF and entangler amplitudes at zero
