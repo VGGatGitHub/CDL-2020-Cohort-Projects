@@ -1,0 +1,162 @@
+\documentclass[12pt]{article}
+
+% packages
+\usepackage{setspace}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath,bm}
+\usepackage{amssymb}
+\usepackage{bbold}
+\usepackage{physics}
+\usepackage{xcolor}
+\usepackage{indentfirst}
+\usepackage{enumerate}
+\usepackage{mathtools}
+\usepackage{fancyhdr}
+\usepackage[ruled,vlined]{algorithm2e}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Creative Destruction Lab}
+\lhead{Introductions to Projects}
+\rfoot{Page \thepage}
+
+\allowdisplaybreaks
+
+\title{Project 4: Ising Annealing}
+
+\begin{document}
+
+\maketitle
+
+\thispagestyle{empty}
+
+\subsection*{Motivation}
+
+If we go back to a couple of weeks ago to Projects 1 and 2, you were able to simulate molecules in a couple of different ways: using machine learning (Restricted Boltzmann machines) and using the Variational Quantum Eigensolver (VQE). In Project 1, you were able to see that machine learning gives a huge advantage in data-driven problems in terms of outputting a compressed version of something quite large (exponential scaling -- $2^{100}$ -- versus a few hundred numbers). Not only this, you saw that if we needed to collaborate with an experimentalist in a lab, machine learning doesn't  demand much from experimentalists (we don't need that much data from them). In Project 2, you saw that solving chemistry problems via simulation on a quantum circuit also has compression benefits, but we didn't need any input data to actually solve our problem like in Project 1. Rather, the {\it variational method} just requires knowledge of the Hamiltonian, and a tunable {\it trial solution} to our problem that we then change based on how good of an energy it gives.
+
+At the end of the day, VQE and machine learning are both extremely useful in different settings, but at the heart of each is an {\it optimization problem}.\footnote{In machine learning we must optimize the cost function and in VQE we must optimize the energy.} Sometimes this optimization problem can be extremely difficult to tackle.
+This week, we'll re-cast the problem into one that can be explored with the well-known simulation method called Monte Carlo (MC).
+At the end of a Monte Carlo simulation we do not obtain a compressed version of something much larger (like the wavefunction).
+Rather, we use a Monte Carlo procedure to produce samples, correctly distributed, from a thermal state.
+
+Thermal annealing exploits thermal fluctuations to discover the groundstate of a system. In a Monte Carlo simulation the temperature can be slowly decreased. If this decrease is slow enough the system remains close to equilibrium, and at the end of annealing the typical configurations encountered will be those typical of the system in its groundstate.\footnote{Of course, in addition to thermal fluctuations, one can envision the use of quantum fluctuations to accelerate the exploration of the configuration space in a similar manner}
+
+Monte Carlo simulations can be {\it very, very} efficient and fast.\footnote{You now see the daily struggles of computational scientists: which algorithm or method do I use to solve my problem?!} This week, your tasks will involve the use of a single-spin-flip Metropolis-Hastings (MH) MC simulation. Let's dive into your tasks!
+
+\subsection*{Your Tasks}
+
+This week, you will be tasked with performing various MC simulations on the Ising model,
+\begin{equation}
+    H = -J\sum_{\langle i,j \rangle} \sigma_i \sigma_j,
+\end{equation}
+where $\sigma_i$ are classical spin-$1/2$ variables ($-1$ or $1$), and $\sum_{\langle i,j \rangle}$ denotes summation over nearest neighbour pairs. You will be walked through a simulation we've provided along with an annealing procedure. Then, you'll be given slight variations to the Ising model where you must come up with an annealing procedure yourself!
+
+\subsubsection*{Task \#1}
+
+Navigate to the \texttt{Task\_1.ipynb} notebook. We've given you a full solution to a MC simulation employing the MH algorithm for a 2D ferromagnetic ($J > 0$) Ising Model on a square lattice with periodic boundary conditions. Code blocks 1 to 5 outline a MC simulation for this system at temperature $T = 1.0$. After this, we now wish to perform a simulation at a temperature $T_{\text{final}} = 0.01$ using an annealing procedure starting at $T_{\text{initial}} = 100$. Here, we employed an annealing procedure that decreases $T_{\text{initial}}$ exponentially (see code block 7). Run this notebook and make sure that you understand what is going on under the hood (see \texttt{abstract\_ising.py} and \texttt{ising\_animator.py}).
+
+\subsubsection*{Task \#2}
+
+Above, we used an exponential annealing ``schedule''.  However, there are many other functional forms that you could use to define the annealing procedure (e.g.~linear).
+In this task you should explore different possibilities, to see what works best (by giving the lowest energy at the end of the anneal).
+Navigate to \texttt{Task\_2.ipynb}. Here's what we'd like you to do!
+\begin{enumerate}
+    \item Having understood Task \#1, we're now going to task you with finding an annealing procedure for the random-bond Ising model in 1D,
+    \begin{equation}
+        H = J\sum_{\langle i,j \rangle} B_{ij}\sigma_i\sigma_j,
+    \end{equation}
+    where $B_{ij} = \pm 1$ are selected randomly at the start. Do this for various system sizes (10, 20, 50, 100).
+    \item The fully-connected random bond Ising model
+    \begin{equation}
+        H = J \sum_{i < j} B_{ij}\sigma_i\sigma_j,
+    \end{equation}
+    is even a little harder to perform a good MC simulation for low temperatures. Find an annealing procedure for this model, as well.
+\end{enumerate}
+We've given you the required classes in order to get your started on these models in \texttt{Task\_2.ipynb}. In your annealing procedures, start with as high of a starting temperature as needed and get to as low of a temperature as you can!
+
+\subsubsection*{Task \#3}
+This is where things get fun!
+We'll be applying what we've learned so far to find the ground state energy
+of the Hydrogen molecule at various separation lengths.
+
+There are several methods with which one can map the electronic structure Hamiltonian
+of the Hydrogen molecule to a classical Ising Hamiltonian
+\cite{iqcc,qcc,xia2016electronic,xia2017electronic} (all of these papers are available on the arXiv).
+The Ising Hamiltonians we'll be handling here were produced using the
+\textit{Iterative Qubit Coupled Cluster} method \cite{iqcc}. This method
+in fact produces \textit{Generalized Ising Hamiltonians}, that is, Ising
+Hamiltonians with $k$-local interactions (where $k > 2$).
+In the case of the Hydrogen molecule, we need only 4-spins to encode the ground state and
+hence, our Generalized Ising Hamiltonian has $k$-local interactions upto $k=4$.
+
+$$
+H = E_0
++ \sum_{i} h_{i}\sigma_i
++ \sum_{ij} J_{ij}\sigma_i\sigma_j
++ \sum_{ijk} K_{ijk}\sigma_i\sigma_j\sigma_k
++ \sum_{ijkl} L_{ijkl}\sigma_i\sigma_j\sigma_k\sigma_l
+$$
+
+The arrays $J_{ij}, K_{ijk}, L_{ijkl}$, encode the $k$-point
+interaction strengths between different Ising spins, $h_i$ encodes the
+external magnetic field applied to the $i$th spin, and $E_0$ is a constant
+energy shift which is irrelevant for the Monte Carlo simulation but
+necessary for computing the energy of the Hydrogen molecule.
+
+Our goal is to perform an annealed Monte Carlo simulation of this
+Hamiltonian in order to find the ground state energy of $H_2$.
+
+\begin{enumerate}
+    \item In \texttt{Task\_3.ipynb}, you'll find the function \texttt{read\_generalized\_ising\_hamiltonian}
+          which will provide you with the Hamiltonian parameters above. Below that, you'll
+          find a skeleton for a \texttt{GeneralizedIsingModel} class which you must complete.
+          With this, you'll perform a Monte Carlo simulation at a fixed temperature for 1000 steps.
+
+    \item Next, you'll devise an annealing procedure (or use one of the ones you came up with previously)
+          to find the ground state of the system.
+
+    \item As we only have 4 Ising spins, we can compute the ground state energy exactly.
+          Do this by iterating over all possible spin configurations, computing the energy
+          for each, and find the ground state. Compare this energy to the one you obtained
+          using annealing.
+
+    \item Last, you'll repeat the above for all the different Hydrogen separation lengths provided.
+\end{enumerate}
+
+\subsection*{Further Challenges} \label{sec:challenges}
+
+\begin{enumerate}
+    \item In \texttt{Task\_2.ipynb}, we also gave you some code to get you started on determining
+          an annealing procedure for the fully-connected Mattis model. Try finding an annealing
+          procedure for this model at various system sizes.
+
+    \item Many existing quantum annealers don't support $k$-local interactions for $k > 2$.
+          Reduce the $H_2$ generalized Ising Model from Task \#3 to a $2$-local Hamiltonian
+          (see \cite{xia2017electronic}) and repeat Task \#3 for this $2$-local Hamiltonian.
+          Compare the energies you get from annealing this Hamiltonian to the energies
+          you got from applying annealing to the original $k$-local Hamiltonian. Does it seem to
+          be more or less difficult to find the ground state with classical thermal annealing?
+
+    \item If you have a trustworthy $2$-local Hamiltonian from the above challenge, compare your home-grown
+        thermal annealing procedure to open-source commercial software (e.g.~D-Wave Leap).  Benchmark
+        performance.  Compare and contrast any differences in annealing approaches.
+
+    \item Map your favorite NP-complete Hamiltonian to an Ising Hamiltonian, and perform
+          a thermally-annealed MC simulation to try to solve the problem. See \cite{ising_np} for some
+          inspiration. Benchmark against commercially available open-source optimization software.
+
+\end{enumerate}
+
+\subsection*{Acknowledgements}\label{sec:acknowledgements}
+We thank the authors of \cite{iqcc} (particularly Ilya and Scott) for their help with Task \#3 and for
+providing the Generalized Ising Hamiltonians for $H_2$.
+
+\newpage
+
+\nocite{*}
+\bibliography{refs}
+\bibliographystyle{unsrt}
+
+\end{document}
